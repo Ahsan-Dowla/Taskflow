@@ -1,0 +1,173 @@
+
+### 1. REGISTER USER
+POST http://localhost:8081/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Demo User",
+  "email": "demo1@example.com",
+  "password": "DemoPass123!"
+}
+
+
+### 2. LOGIN
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo1@example.com",
+  "password": "DemoPass123!"
+}
+
+> {%
+    client.global.set("authToken", response.body.token);
+    client.log("JWT token successfully received");
+%}
+
+
+### 3. VERIFY AUTHENTICATED USER
+GET http://localhost:8081/api/auth/me
+Authorization: Bearer {{authToken}}
+
+
+### 4. TEST INVALID LOGIN
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo1@example.com",
+  "password": "WrongPassword123!"
+}
+
+
+### 5. TEST ACCESS WITHOUT TOKEN
+GET http://localhost:8081/api/auth/me
+
+### 1. CREATE TASK
+POST http://localhost:8081/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Learn PostgreSQL",
+  "completed": false
+}
+
+> {%
+    client.global.set("taskId", response.body.id);
+    client.log("Automatically captured Task ID: " + response.body.id);
+%}
+
+
+### 2. READ ALL TASKS
+GET http://localhost:8081/api/tasks
+
+
+### 3. READ TASK USING AUTOMATIC ID
+GET http://localhost:8081/api/tasks/{{taskId}}
+
+
+### 4. UPDATE TASK USING AUTOMATIC ID
+PUT http://localhost:8081/api/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "title": "Master Spring Boot and PostgreSQL",
+  "completed": true
+}
+
+
+### 5. READ UPDATED TASK
+GET http://localhost:8081/api/tasks/{{taskId}}
+
+
+### 6. DELETE TASK USING AUTOMATIC ID
+DELETE http://localhost:8081/api/tasks/{{taskId}}
+
+
+### 7. VERIFY DELETION
+GET http://localhost:8081/api/tasks/{{taskId}}
+
+
+
+
+
+@baseUrl = http://localhost:8081
+
+### 1. LOGIN AS USER A
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo1@example.com",
+  "password": "DemoPass123!"
+}
+
+> {%
+    client.global.set("tokenA", response.body.token);
+%}
+
+
+### 2. CREATE A TASK AS USER A
+POST {{baseUrl}}/api/tasks
+Authorization: Bearer {{tokenA}}
+Content-Type: application/json
+
+{
+  "title": "User A private task",
+  "completed": false
+}
+
+> {%
+    client.global.set("taskAId", response.body.id);
+%}
+
+
+### 3. VIEW USER A TASKS
+GET {{baseUrl}}/api/tasks
+Authorization: Bearer {{tokenA}}
+
+
+### 4. REGISTER USER B
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Demo User B",
+  "email": "demo2@example.com",
+  "password": "DemoPass456!"
+}
+
+
+### 5. LOGIN AS USER B
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo2@example.com",
+  "password": "DemoPass456!"
+}
+
+> {%
+    client.global.set("tokenB", response.body.token);
+%}
+
+
+### 6. VIEW USER B TASKS
+GET {{baseUrl}}/api/tasks
+Authorization: Bearer {{tokenB}}
+
+
+### 7. TRY TO ACCESS USER A TASK
+GET {{baseUrl}}/api/tasks/{{taskAId}}
+Authorization: Bearer {{tokenB}}
+
+
+### 8. TRY TO DELETE USER A TASK
+DELETE {{baseUrl}}/api/tasks/{{taskAId}}
+Authorization: Bearer {{tokenB}}
+
+
+### 9. VERIFY USER A STILL HAS THE TASK
+GET {{baseUrl}}/api/tasks/{{taskAId}}
+Authorization: Bearer {{tokenA}}
+
